@@ -1,0 +1,16 @@
+
+version: 2
+
+models:
+    - name: pageviews_proc
+      description: "Flattening the `pageviews` event into rows.  All columns named as they appear in the `events_` table."
+
+    - name: user_page_paths
+      description: "Supports page path sequence reporting. Tags each pageview event from `pageviews_proc` with a `session_event_order`."
+      columns:
+          - name: session_event_order
+            description: "Pageview number for the session"
+            tests:
+                - not_null
+          - name: user_type
+            description: "New vs existing, based on `user_first_touch_timestamp`."
