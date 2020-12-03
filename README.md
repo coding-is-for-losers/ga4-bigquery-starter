@@ -1,6 +1,8 @@
 # ga4-bigquery-starter
 A starter package of dbt models for the GA4 BigQuery stream
 
+https://www.loom.com/share/a8a3651629bd4d80aa9ea861b3d9c29e
+
 ### This is a #measure community project
 If you have ideas for views / reports to add to the project, please submit them as issues.
 
