@@ -33,8 +33,10 @@ FROM
 UNNEST(event_params) AS params
 WHERE event_name = 'page_view'
 
+{% if is_incremental() %}
 -- Refresh only recent session data to limit query costs, unless running with --full-refresh
 	AND regexp_extract(_table_suffix,'[0-9]+') BETWEEN FORMAT_DATE("%Y%m%d", DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY)) AND
-  		FORMAT_DATE("%Y%m%d", CURRENT_DATE()) 
+  		FORMAT_DATE("%Y%m%d", CURRENT_DATE())
+{% endif %}
 
 GROUP BY event_date, event_timestamp, user_pseudo_id, user_first_touch_timestamp, device_category, device_language, device_browser, geo_continent, geo_country
