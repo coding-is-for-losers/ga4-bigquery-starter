@@ -29,14 +29,14 @@ max(if(params.key = 'page_referrer', params.value.string_value, null)) utm_refer
 max(ecommerce.transaction_id) ecommerce_transaction_id,
 max(ecommerce.purchase_revenue) ecommerce_purchase_revenue
 FROM
-`{{ target.project }}.{{ target.schema }}.events_*`,
+{{ ref('dedup_events') }},
 UNNEST(event_params) AS params
 WHERE event_name = 'page_view'
 
 {% if is_incremental() %}
 -- Refresh only recent session data to limit query costs, unless running with --full-refresh
-	AND regexp_extract(_table_suffix,'[0-9]+') BETWEEN FORMAT_DATE("%Y%m%d", DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY)) AND
-  		FORMAT_DATE("%Y%m%d", CURRENT_DATE())
+	AND table_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY) AND
+  		CURRENT_DATE()
 {% endif %}
 
 GROUP BY event_date, event_timestamp, user_pseudo_id, user_first_touch_timestamp, device_category, device_language, device_browser, geo_continent, geo_country
