@@ -23,6 +23,6 @@ where
   row = 1
 {% if is_incremental() %}
 -- Refresh only recent session data to limit query costs, unless running with --full-refresh
-	AND regexp_extract(_table_suffix,'[0-9]+') BETWEEN FORMAT_DATE("%Y%m%d", DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY)) AND
-  		FORMAT_DATE("%Y%m%d", CURRENT_DATE())
+	AND table_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY) AND
+  		CURRENT_DATE()
 {% endif %}
