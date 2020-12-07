@@ -1,6 +1,3 @@
--- depends_on: {{ ref('intraday_tables_proc') }}
-{% set intraday_tables = dbt_utils.get_column_values(table=ref('intraday_tables_proc'), column='creation_time', max_records=1) %}
-
 {{ config(
     materialized='incremental',
     partition_by={
@@ -31,22 +28,15 @@ max(if(params.key = 'campaign', params.value.string_value, null)) utm_campaign,
 max(if(params.key = 'page_referrer', params.value.string_value, null)) utm_referrer,
 max(ecommerce.transaction_id) ecommerce_transaction_id,
 max(ecommerce.purchase_revenue) ecommerce_purchase_revenue
-FROM 
-
--- Check if _intraday or daily events tables should be used
-{% if intraday_tables|length > 0 %}
-	`{{ target.project }}.{{ target.schema }}.events_intraday_*`,
-{% else %}
-	`{{ target.project }}.{{ target.schema }}.events_*`,
-{% endif %}
-
+FROM
+{{ ref('dedup_events') }},
 UNNEST(event_params) AS params
 WHERE event_name = 'page_view'
 
--- Refresh only recent session data to limit query costs, unless running with --full-refresh
 {% if is_incremental() %}
-	AND _TABLE_SUFFIX BETWEEN FORMAT_DATE("%Y%m%d", DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY)) AND
-  		FORMAT_DATE("%Y%m%d", CURRENT_DATE()) 
+-- Refresh only recent session data to limit query costs, unless running with --full-refresh
+	AND table_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY) AND
+  		CURRENT_DATE()
 {% endif %}
 
 GROUP BY event_date, event_timestamp, user_pseudo_id, user_first_touch_timestamp, device_category, device_language, device_browser, geo_continent, geo_country
