@@ -3,7 +3,7 @@
     partition_by={
       "field": "event_date",
       "data_type": "date"},
-    cluster_by= ["event_date", "ga_session_id"],
+    cluster_by= ["event_date","user_pseudo_id","ga_session_id"],
     incremental_strategy = 'insert_overwrite'
 )}}
 
@@ -38,7 +38,7 @@ ecommerce_purchase_revenue
 FROM {{ ref('pageviews_proc') }}
 {% if is_incremental() %}
 		
-    -- recalculate yesterday + today
+    -- Refresh only recent session data to limit query costs, unless running with --full-refresh
     WHERE event_date >= date_sub(current_date(), INTERVAL {{ var('session_lookback_days') }} DAY)
 		
 {% endif %}
