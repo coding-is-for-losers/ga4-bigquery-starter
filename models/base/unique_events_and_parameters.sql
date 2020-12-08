@@ -14,9 +14,7 @@ FROM
   {{ ref('dedup_events') }},
   UNNEST(event_params) AS params
 WHERE
--- Refresh only recent session data to limit query costs, unless running with --full-refresh
-	table_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY) AND
-  		CURRENT_DATE()
+	table_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL {{ var('session_lookback_days') }} DAY) AND CURRENT_DATE()
 GROUP BY
   event_name,
   event_parameter_key,
